@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.HashMap;
 
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -15,12 +16,18 @@ import javax.swing.JOptionPane;
  */
 public class PokerGameController implements MouseListener, ActionListener{
 	
-	private static final int INIT_CASH = 100;
+	private static final int INIT_CASH;
+	private static final HashMap<Integer, String> SCORE_MAP;
 	private PokerGameFrame mGameFrame;
 	private int mBet;
 	private Deck mDeck;
 	private Hand mHand;
 	private int mCash;
+	
+	static {
+		INIT_CASH = 100;
+		SCORE_MAP = buildScoreMap();
+	}
 	
 	public PokerGameController()
 	{
@@ -47,6 +54,21 @@ public class PokerGameController implements MouseListener, ActionListener{
 		
 		mCash = INIT_CASH;
 		updateCashUI();
+	}
+
+	private static HashMap<Integer, String> buildScoreMap() {
+		HashMap<Integer, String> map = new HashMap<Integer, String>();
+		map.put(Hand.FLUSH, "Flush");
+		map.put(Hand.FOUR_KIND, "Four of a Kind");
+		map.put(Hand.FULL_HOUSE, "Full House");
+		map.put(Hand.ONE_PAIR, "One Pair");
+		map.put(Hand.ROYAL_FLUSH, "Royal Flush");
+		map.put(Hand.STRAIT, "Strait");
+		map.put(Hand.STRAIT_FLUSH, "Strait Flush");
+		map.put(Hand.THREE_KIND, "Three of a Kind");
+		map.put(Hand.TWO_PAIR, "Two Pair");
+		map.put(Hand.NOTHING, "");
+		return map;
 	}
 
 	@Override
@@ -84,12 +106,17 @@ public class PokerGameController implements MouseListener, ActionListener{
 	private void bet(int bet) {
 		mBet = bet;
 		mCash -= bet;
+		clearDisplay();
 		updateCashUI();
 		resetHolds();
 		deal();
 		toggleButtons();
 	}
 	
+	private void clearDisplay() {
+		mGameFrame.getJlResult().setText("");
+	}
+
 	private void toggleButtons() {
 		mGameFrame.getJbDraw().setEnabled(!mGameFrame.getJbDraw().isEnabled());
 		boolean enabled = !mGameFrame.getJbDraw().isEnabled();
@@ -138,6 +165,9 @@ public class PokerGameController implements MouseListener, ActionListener{
 		resetHolds();
 		int score = mHand.score();
 		mCash += (mBet * score);
+
+		// display the result
+		mGameFrame.getJlResult().setText(SCORE_MAP.get(score));
 		
 		if (mCash <= 0)
 		{
@@ -151,7 +181,7 @@ public class PokerGameController implements MouseListener, ActionListener{
 		updateCashUI();
 		toggleButtons();
 	}
-	
+
 	// hide the "hold" labels
 	private void resetHolds() {
 		for (int i = 0; i < PokerGame.NUM_CARDS; i++)
